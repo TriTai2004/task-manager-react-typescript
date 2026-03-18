@@ -6,10 +6,10 @@ import { formatDateTimeLocal } from "../../utils/formatDate";
 interface Props {
     value?: Task | null;
     onCancel: () => void;
-    func: (value: Task) => void
+    onSubmit: (value: Task) => void
 }
 
-const TaskForm = ({ value, func, onCancel }: Props) => {
+const TaskForm = ({ value, onSubmit, onCancel }: Props) => {
 
     const [id, setId] = useState(value?.id || uuidv4());
     const [title, setTitle] = useState(value?.title || "");
@@ -42,7 +42,7 @@ const TaskForm = ({ value, func, onCancel }: Props) => {
 
         }
 
-        func(task);
+        onSubmit(task);
         clearForm();
         setShow(false);
     }
