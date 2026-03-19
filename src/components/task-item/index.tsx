@@ -44,13 +44,13 @@ const TaskItem = ({ task, onEdit, onDelete }: Props) => {
 
             <span>Deadline: {formatMMDDYYYYHHMM(new Date(task.deadline))}</span>
 
-            {getDeadlineWarning(task) && (
+            {getDeadlineWarning(task) && task.status != "DONE" && (
               <span className="sm:ml-2 mt-2 sm:mt-0 inline-flex items-center rounded-md bg-yellow-50 sm:px-2 sm:py-1 text-xs font-medium
                    text-yellow-700 inset-ring inset-ring-red-600/10">
                 Deadline approaching!
               </span>
             )}
-            {isDeadlineExpired(task) && (
+            {isDeadlineExpired(task) && task.status != "DONE" && (
               <span className="sm:ml-2 mt-2 sm:mt-0 inline-flex items-center rounded-md bg-red-50 px-2 py-1 text-xs font-medium
                    text-red-700 inset-ring inset-ring-red-600/10">
                 Overdue!
