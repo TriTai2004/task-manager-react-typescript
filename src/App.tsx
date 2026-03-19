@@ -10,7 +10,8 @@ const App = () => {
 
   const [task, setTask] = useState<Task | null>();
 
-  const { tasks, addTask, editTask, deleteTask } = useTasks();
+  const { tasks, addTask, editTask, deleteTask, stats, search, statusFilter,
+    filteredTasks, setSearch, setStatusFilter } = useTasks();
 
   const handleSubmit = (t: Task) => {
     if (task) {
@@ -43,14 +44,20 @@ const App = () => {
           Task Manager
         </h1>
         <div className="rounded md:border sm:p-3">
-          <Stats />
+          <Stats done={stats.done} total={stats.total} overdue={stats.overdue} />
         </div>
         <div className="space-y-4 md:space-y-6">
-          <TaskForm value={task} onSubmit={handleSubmit} onCancel={onCancel} />
-          <FilterBar />
+          <TaskForm key={task?.id || "new"} value={task} onSubmit={handleSubmit} onCancel={onCancel} />
+          <FilterBar search={search} statusFilter={statusFilter} onStatusChange={setStatusFilter} onSearchChange={setSearch} />
         </div>
-        <TaskList tasks={tasks} onEdit={handleEdit} onDelete={handleDelete} />
+        <TaskList tasks={filteredTasks} onEdit={handleEdit} onDelete={handleDelete} />
+        {tasks.length === 0 && (
+          <p className="text-center">No tasks yet</p>
+        )}
 
+        {tasks.length > 0 && filteredTasks.length === 0 && (
+          <p className="text-center">No tasks found</p>
+        )}
       </div>
     </div>
   );
