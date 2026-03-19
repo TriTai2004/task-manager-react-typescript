@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
-import type { Task } from "../../types/task";
+import { useState } from "react";
+import type { Task, TaskStatus } from "../../types/task";
 import { v4 as uuidv4 } from "uuid";
-import { formatDateTimeLocal } from "../../utils/formatDate"; 
+import { formatDateTimeLocal } from "../../utils/formatDate";
 
 interface Props {
     value?: Task | null;
@@ -9,28 +9,28 @@ interface Props {
     onSubmit: (value: Task) => void
 }
 
+type FormError = {
+    title?: string;
+    description?: string;
+    deadline?: string;
+};
+
 const TaskForm = ({ value, onSubmit, onCancel }: Props) => {
 
-    const [id, setId] = useState(value?.id || uuidv4());
     const [title, setTitle] = useState(value?.title || "");
     const [description, setDescription] = useState(value?.description || "");
-    const [status, setStatus] = useState(value?.status || "TODO");
+    const [status, setStatus] = useState<TaskStatus>(value?.status || "TODO");
     const [deadline, setDeadline] = useState(
-        value?.createdAt
-            ? formatDateTimeLocal(new Date(value.createdAt))
-            : formatDateTimeLocal(new Date())
+        value?.deadline ? formatDateTimeLocal(new Date(value.deadline)) : formatDateTimeLocal(new Date())
     );
-    const [createdAt, setCreatedAt] = useState(
-        value?.createdAt
-            ? formatDateTimeLocal(new Date(value.createdAt))
-            : formatDateTimeLocal(new Date()));
-    const [show, setShow] = useState(false);
+    const [show, setShow] = useState(!!value);
+    const [error, setError] = useState<FormError>({});
+
+    const id = value?.id || uuidv4();
+    const createdAt = value?.createdAt || formatDateTimeLocal(new Date());
 
     const handleSubmit = () => {
-
-        if (!title || !description || !createdAt) {
-            return;
-        }
+        if (validate()) return;
 
         const task: Task = {
             id: id,
@@ -43,37 +43,42 @@ const TaskForm = ({ value, onSubmit, onCancel }: Props) => {
         }
 
         onSubmit(task);
-        clearForm();
         setShow(false);
+        clearForm();
+
+    }
+
+    const validate = () => {
+
+        const newErr: FormError = {};
+
+        if (!title?.trim()) newErr.title = "Title is required!";
+        if (!description?.trim()) newErr.description = "Description is required!";
+        if (!deadline?.trim()) newErr.deadline = "Deadline is required!";
+
+        setError(newErr);
+
+        return Object.keys(newErr).length > 0;
+
+    }
+
+    const clearError = (key: keyof FormError) => {
+        setError((prevErr) => {
+
+            const newErr = { ...prevErr };
+            delete newErr[key];
+            return newErr;
+        })
     }
 
     const clearForm = () => {
-        setId(uuidv4());
         setTitle("");
         setStatus("TODO");
         setDescription("");
         setDeadline(formatDateTimeLocal(new Date()));
-        setCreatedAt(formatDateTimeLocal(new Date()));
+        setError({});
     }
 
-    useEffect(() => {
-
-        const updateWithValue = () => {
-            if (!value?.deadline || !value?.description) {
-                return;
-            }
-            setId(value?.id);
-            setTitle(value?.title);
-            setStatus(value?.status);
-            setDescription(value?.description);
-            setDeadline(value?.deadline);
-            setCreatedAt(value?.createdAt);
-            setShow(true);
-        }
-
-        updateWithValue();
-
-    }, [value])
 
     return (
         <>
@@ -85,12 +90,18 @@ const TaskForm = ({ value, onSubmit, onCancel }: Props) => {
                             <input
                                 id="title"
                                 value={title}
-                                onChange={(e) => setTitle(e.target.value)}
+                                onChange={(e) => {
+                                    setTitle(e.target.value);
+                                    clearError("title");
+                                }}
                                 type="text"
                                 autoFocus
-                                placeholder="Task name..."
-                                className="border w-full rounded-lg p-2 col-span-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                                placeholder="Title name..."
+                                className={`${error.title ? "border-red-500" : ""} border w-full rounded-lg p-2 col-span-2 focus:outline-none focus:ring-1 focus:ring-blue-400`}
                             />
+                            {error.title && (
+                                <span className="text-red-500">{error.title}</span>
+                            )}
 
                         </div>
                         <div className="mb-4 md:p-1">
@@ -110,10 +121,16 @@ const TaskForm = ({ value, onSubmit, onCancel }: Props) => {
                             <input
                                 id="deadline"
                                 value={deadline}
-                                onChange={(e) => setDeadline(e.target.value)}
+                                onChange={(e) => {
+                                    setDeadline(e.target.value);
+                                    clearError("deadline")
+                                }}
                                 type="datetime-local"
-                                className="border w-full rounded-lg p-2 col-span-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                                className={`${error.deadline ? "border-red-500" : ""} border w-full rounded-lg p-2 col-span-2 focus:outline-none focus:ring-1 focus:ring-blue-400`}
                             />
+                            {error.deadline && (
+                                <span className="text-red-500">{error.deadline}</span>
+                            )}
                         </div>
                     </div>
                     <div className="mb-4 md:p-1">
@@ -121,14 +138,21 @@ const TaskForm = ({ value, onSubmit, onCancel }: Props) => {
                         <textarea
                             placeholder="Description..."
                             value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            id="description" className="w-full border rounded-lg p-2 col-span-2 focus:outline-none focus:ring-1 focus:ring-blue-400">
+                            onChange={(e) => {
+                                setDescription(e.target.value);
+                                clearError("description");
+                            }}
+                            id="description"
+                            className={`${error.description ? "border-red-500" : ""} w-full border rounded-lg p-2 col-span-2 focus:outline-none focus:ring-1 focus:ring-blue-400`}>
                         </textarea>
+                        {error.description && (
+                            <span className="text-red-500">{error.description}</span>
+                        )}
                     </div>
                     <div className="flex justify-end">
                         <button
                             onClick={() => {
-                                setShow(!show);
+                                setShow(false);
                                 clearForm();
                                 onCancel();
                             }}
@@ -139,9 +163,9 @@ const TaskForm = ({ value, onSubmit, onCancel }: Props) => {
                             onClick={() => handleSubmit()}
                             className="p-2 rounded text-white bg-gradient-to-r from-cyan-500
                              to-blue-500 hover:bg-gradient-to-bl focus:outline-none focus:ring-cyan-300 transition">
-                            { !value ? "Add Task" : "Update Task" }
+                            {!value ? "Add Task" : "Update Task"}
                         </button>
-                   
+
                     </div>
                 </div>
             )}
