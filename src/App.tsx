@@ -5,10 +5,13 @@ import TaskForm from "./components/task-form";
 import FilterBar from "./components/filter-bar";
 import TaskList from "./components/task-list";
 import useTasks from "./hooks/useTasks";
+import { toast, ToastContainer } from "react-toastify";
+import { confirmDelete } from "./utils/confirm";
+
 
 const App = () => {
 
-  const [task, setTask] = useState<Task | null>();
+  const [task, setTask] = useState<Task | null>(null);
 
   const { tasks, addTask, editTask, deleteTask, stats, search, statusFilter,
     filteredTasks, setSearch, setStatusFilter } = useTasks();
@@ -16,16 +19,21 @@ const App = () => {
   const handleSubmit = (t: Task) => {
     if (task) {
       editTask(t);
+      toast.success("Edit task success!");
       setTask(null);
     } else {
       addTask(t);
+      toast.success("Add task success!");
       setTask(null);
     }
 
   }
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
+    const ok = await confirmDelete();
+    if (!ok) return;
     deleteTask(id);
+    toast.success("Deleted!");
 
   }
 
@@ -59,6 +67,15 @@ const App = () => {
           <p className="text-center">No tasks found</p>
         )}
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={1500}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        theme="light"
+      />
     </div>
   );
 }

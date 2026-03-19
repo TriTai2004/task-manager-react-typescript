@@ -66,7 +66,7 @@ const TaskItem = ({ task, onEdit, onDelete }: Props) => {
             task.status
           )}`}
         >
-          {task.status}
+          {task.status.replace("_", " ")}
         </span>
 
         <div className="flex items-center">
