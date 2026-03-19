@@ -33,7 +33,10 @@ const App = () => {
     const ok = await confirmDelete();
     if (!ok) return;
     deleteTask(id);
-    toast.success("Deleted!");
+    if (id === task?.id) {
+      setTask(null);
+    }
+    toast.success("Delete task success!");
 
   }
 
